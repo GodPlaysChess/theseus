@@ -1,0 +1,14 @@
+- Graph build (connect edges, create structure) and graph ops (traverse, explore, map, find, fold etc..) should be separated (algorithms)
+- Types of the graph:
+    - no IO (currently EvaluatedGraph)
+    - known structure, but unknown content and length
+    - some known nodes + edges - unexplored graph (IOGraph)
+- Test performance, when changing Set to ISet, and Map to ==>>
+- benchmarking
+- visualisation
+- parsers (to easily create graph)
+
+-- what if the graph is to big to be stored in memory. Then I can't use Hashmap to keep track of all nodes.
+    Make it as ADT, and lazily traverse every time - writing to hashmap on .memoize?
+    May be do the basics for `small-graphs` first, and then figure out the size where it's no longer practical -> and then implement
+    generic ones.
