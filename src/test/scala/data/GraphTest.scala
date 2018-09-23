@@ -52,7 +52,7 @@ class GraphTest extends FlatSpec with Matchers {
     ???
   }
 
-  it should "return all cycles in " {
+  it should "return all cycles " in {
     ???
   }
 
