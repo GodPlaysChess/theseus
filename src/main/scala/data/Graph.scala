@@ -59,24 +59,17 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
     new Graph[I, L, A](Foldable[F].foldl(moreNodes, nodes)(ns ⇒ n ⇒ ns + (n.id → n)), edges)
   }
 
-  def *-*(s: I, f: I, l: L): Option[Graph[I, L, A]] = connect(s, f, l)
+  def *-*(s: I, f: I, l: L): Option[Graph[I, L, A]] = connect(s, f, l).toOption
 
   /**
     * None if either f or s does not exists. Alternatively can return Node(S) does not exist message
     * */
-  def connect(s: I, f: I, l: L): Option[Graph[I, L, A]] = {
-    (nodes.contains(s) && nodes.contains(f)).guard[Option](
+  def connect(s: I, f: I, l: L): ErrorAlgebra \/ Graph[I, L, A] = {
+    (nodes.contains(s) && nodes.contains(f)).either(
       new Graph(nodes, edges.insertWith(s, Set(Edge(l, s, f)))(_ ++ _))
-    )
+    ) or ErrorAlgebra.noSuchNode
   }
 
-  /**
-    * TODO: Add errors such as `NoSuchNode`
-    * @param s
-    * @param f
-    * @param S
-    * @return
-    */
   def shortestPathLength(s: I, f: I)(implicit S: Monoid[L], OL: Order[L]): ErrorAlgebra \/ L = {
     ((nodes.contains(s) && nodes.contains(f)).either(
       distances(s)._1(f).fold(S.zero.right[ErrorAlgebra], ErrorAlgebra.nodeUnreachable.left, _.right)
@@ -84,8 +77,10 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
   }
 
   /* TODO use a Fibonacci heap, as it should be more perfomant */
-  def shortestPath(s: I, f: I)(implicit S: Semigroup[L], OL: Order[L]): IList[I] = {
-    (f ##:: EphemeralStream.unfold(f)(distances(s)._2.get(_).join.fpair)).reverse.toIList
+  def shortestPath(s: I, f: I)(implicit S: Semigroup[L], OL: Order[L]): ErrorAlgebra \/ IList[I] = {
+    (nodes.contains(s) && nodes.contains(f)).either(
+      (f ##:: EphemeralStream.unfold(f)(distances(s)._2.get(_).join.fpair)).reverse.toIList
+    ) or ErrorAlgebra.noSuchNode
   }
 
   private def distances(s: I)(implicit S: Semigroup[L], OL: Order[L]): (Map[I, MinMax[L]], Map[I, Option[I]]) = {

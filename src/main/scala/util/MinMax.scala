@@ -6,7 +6,6 @@ import util.MinMax.{Avg, Max, Min}
 
 /**
   * Enriches any type A with Min and Max element. Which is relevant for the ordering.
-  * @tparam A
   */
 sealed abstract class MinMax[A] { self ⇒
   def fold[B](min: ⇒ B, max: ⇒ B, f: A ⇒ B): B = self match {
@@ -17,9 +16,9 @@ sealed abstract class MinMax[A] { self ⇒
 }
 
 object MinMax {
-  final case class Min[A]() extends MinMax[A]
-  final case class Max[A]() extends MinMax[A]
-  final case class Avg[A](value: A) extends MinMax[A]
+  private final case class Min[A]() extends MinMax[A]
+  private final case class Max[A]() extends MinMax[A]
+  private final case class Avg[A](value: A) extends MinMax[A]
 
   def min[A]: MinMax[A] = Min[A]()
   def max[A]: MinMax[A] = Max[A]()

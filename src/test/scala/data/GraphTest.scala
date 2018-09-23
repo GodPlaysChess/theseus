@@ -35,7 +35,7 @@ class GraphTest extends FlatSpec with Matchers {
   }
 
   it should "find the shortest path in O(n)" in {
-    graph.shortestPath(1, 6).flatMap(graph.node(_).toIList).map(_.content).fold shouldBe "Hell"
+    graph.shortestPath(1, 6).map(_.flatMap(graph.node(_).toIList).map(_.content).fold) shouldBe \/-("Hell")
     graph.shortestPathLength(1, 6) shouldBe \/-(3)
   }
 
