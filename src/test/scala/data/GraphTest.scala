@@ -22,8 +22,6 @@ class GraphTest extends FlatSpec with Matchers {
     val updatedGraph = graph +* n1.copy(content = "other")
     updatedGraph.size shouldBe 6
     updatedGraph.node(1) should contain(Node(1, "other"))
-
-
   }
 
   it should "give all outgoing edges in O(1)" in {

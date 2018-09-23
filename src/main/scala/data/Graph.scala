@@ -16,7 +16,8 @@ case class Edge[I, L](length: L, start: I, finish: I)
 case class Node[I, A](id: I, content: A)
 
 // Equal I does not need until we use such constraint in the map
-class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], private val edges: Map[I, Set[Edge[I, L]]]) {
+// For directed graph, for every edge  there's another edge with swapped direction. Or UndirectedEdg
+class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], private val edges: Map[I, Set[Edge[I, L]]]) { self ⇒
 
   def size = nodes.size
 
@@ -70,6 +71,13 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
     ) or ErrorAlgebra.noSuchNode
   }
 
+  def disconnect(s: I, f: I): Graph[I, L, A] = {
+    edges.get(s).cata(edgesForS ⇒ {
+      val edges2 = edgesForS.filter(_.finish == f)
+      if (edges2.isEmpty) edges.deleteKey(s) else
+    }, self)
+  }
+
   def shortestPathLength(s: I, f: I)(implicit S: Monoid[L], OL: Order[L]): ErrorAlgebra \/ L = {
     ((nodes.contains(s) && nodes.contains(f)).either(
       distances(s)._1(f).fold(S.zero.right[ErrorAlgebra], ErrorAlgebra.nodeUnreachable.left, _.right)
@@ -119,13 +127,17 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
 }
 
 object Graph {
-//  import scalaz._
-//  import Scalaz._
-
+  // todo change Equal to Order constraint to use scalaz datatypes
   def create[I: Equal, A, L](nodes: List[Node[I, A]], edges: List[Edge[I, L]]) = {
     new Graph[I, L, A](nodes.fproduct(_.id).map(_.swap).toMap, edges.groupBy(_.start).mapValues(_.toSet))
   }
 
+  def createdUndirected[I: Equal, A, L](nodes: List[Node[I, A]], edges: List[Edge[I, L]]) = {
+    ???
+  }
+
+  // that does not make any sence to mix scalaz and native concepts there.
+  // But OTOH it'll go away as soon as I move to scalaz datastructures entirely
   implicit def graphInstance[I, A, L]: Equal[Graph[I, A, L]] = new Equal[Graph[I, A, L]] {
     override def equal(a1: Graph[I, A, L], a2: Graph[I, A, L]): Boolean = {
       a1.allNodes == a2.allNodes && a1.allEdges == a2.allEdges
