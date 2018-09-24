@@ -9,28 +9,56 @@ class GraphTest extends FlatSpec with Matchers {
   import fixtures.GraphFixture.nodes._
   import fixtures.GraphFixture.edges._
 
-  behavior of "Basic operations on normal graph"
-
-
   /**
     *       2 --- 4 --- 6
     *      /    /
     *    1 --- 3  --- 5
     *
     */
+  behavior of "Construction of the graph"
+
   it should "guarantee uniqueness of the nodes with the same identifier and content is overridden upon addition" in {
     val updatedGraph = graph +* n1.copy(content = "other")
     updatedGraph.size shouldBe 6
     updatedGraph.node(1) should contain(Node(1, "other"))
   }
 
+  it should "be ok to remove node" in {
+    val updatedGraph = graph -* 1
+    updatedGraph.size shouldBe 5
+    updatedGraph.node(1) shouldBe empty
+  }
+
+  it should "be ok to connect nodes" in {
+    val updatedGraph = graph *-* Edge(10, 5, 6)
+    updatedGraph.size shouldBe 6
+    updatedGraph.edgesFrom(5) should contain(Edge(10, 5, 6))
+  }
+
+  it should "be ok to disconnect nodes" in {
+    val updatedGraph = graph *~* (3, 5)
+    updatedGraph.size shouldBe 6
+    updatedGraph.edgesFrom(5) shouldBe empty
+    updatedGraph.edgesFrom(3) shouldBe Set(e34)
+  }
+
+
+  behavior of "Basic queries on normal graph"
+
   it should "give all outgoing edges in O(1)" in {
-    graph.allEdges(1) shouldBe Set(e12, e13)
+    graph.edgesFrom(1) shouldBe Set(e12, e13)
   }
 
   it should "give all neighbors in O(1) for particular node" in {
     graph.neighbors(3) shouldBe Set(4, 5)
   }
+
+  it should "find the edge connecting 2 nodes in O(1)" in {
+    graph.edge(1, 6) shouldBe empty
+    graph.edge(1, 2) should contain (Edge(1, 1, 2))
+  }
+  
+  behavior of "Algorithms"
 
   it should "find the shortest path in O(n)" in {
     graph.shortestPath(1, 6).map(_.flatMap(graph.node(_).toIList).map(_.content).fold) shouldBe \/-("Hell")
@@ -41,10 +69,6 @@ class GraphTest extends FlatSpec with Matchers {
     graph.node(3) should contain (Node(3, "o"))
   }
 
-  it should "find the edge connecting 2 nodes in O(1)" in {
-    graph.edge(1, 6) shouldBe empty
-    graph.edge(1, 2) should contain (Edge(1, 1, 2))
-  }
 
   it should "give back all disconnected parts" in {
     ???

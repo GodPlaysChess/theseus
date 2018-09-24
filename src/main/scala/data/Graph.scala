@@ -33,17 +33,17 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
   /**
     * Looks up edge, connecting two nodes.
     */
-  def edge(s: I, f: I): Option[Edge[I, L]] = allEdges(s).find(_.finish === f)
+  def edge(s: I, f: I): Option[Edge[I, L]] = edgesFrom(s).find(_.finish === f)
 
   /**
     * Looks up all edges, starting in node
     */
-  def allEdges(node: I): Set[Edge[I, L]] = edges.getOrElse(node, Set.empty)
+  def edgesFrom(node: I): Set[Edge[I, L]] = edges.getOrElse(node, Set.empty)
 
   /**
     * all neighbors for the node
     */
-  def neighbors(node: I): Set[I] = allEdges(node).map(_.finish)
+  def neighbors(node: I): Set[I] = edgesFrom(node).map(_.finish)
 
 
   /**
@@ -54,26 +54,35 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
   }
 
   /**
+    * Removes node to the graph.
+    */
+  def -*(n: I): Graph[I, L, A] = {
+    new Graph[I, L, A](nodes - n, (edges - n).mapValues(_.filter(_.finish != n)))
+  }
+
+  /**
     * Adds nodes to the graph.
     */
   def ++*[F[_]: Foldable](moreNodes: F[Node[I, A]]): Graph[I, L, A] = {
     new Graph[I, L, A](Foldable[F].foldl(moreNodes, nodes)(ns ⇒ n ⇒ ns + (n.id → n)), edges)
   }
 
-  def *-*(s: I, f: I, l: L): Graph[I, L, A] = connectE(s, f, l) getOrElse self
+  def *-* : Edge[I, L] ⇒ Graph[I, L, A] = connectE(_) getOrElse self
 
   /**
     * None if either f or s does not exists. Alternatively can return Node(S) does not exist message
     * */
-  def connectE(s: I, f: I, l: L): ErrorAlgebra \/ Graph[I, L, A] = {
+  def connectE(e: Edge[I, L]): ErrorAlgebra \/ Graph[I, L, A] = e match { case Edge(l, s, f) ⇒
     (nodes.contains(s) && nodes.contains(f)).either(
       new Graph(nodes, edges.insertWith(s, Set(Edge(l, s, f)))(_ ++ _))
     ) or ErrorAlgebra.noSuchNode
   }
 
+  def *~* : (I, I) ⇒ Graph[I, L, A] = disconnect
+
   def disconnect(s: I, f: I): Graph[I, L, A] = {
     edges.get(s).cata(edgesForS ⇒ {
-      val es2 = edgesForS.filter(_.finish == f)
+      val es2 = edgesForS.filter(_.finish != f)
       val edges1 = if (es2.isEmpty) edges - s else edges + (s -> es2)
       new Graph(nodes, edges1)
     }, self)
@@ -104,7 +113,7 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
       heap.uncons match {
         case None => dist → prev
         case Some((min, remheap)) =>
-          val (dist1, prev1, remheap1) = allEdges(min._1).foldLeft((dist, prev, remheap)) { case ((dst, prv, rem), out) ⇒
+          val (dist1, prev1, remheap1) = edgesFrom(min._1).foldLeft((dist, prev, remheap)) { case ((dst, prv, rem), out) ⇒
             val alt = dst(out.start) |+| avg(out.length) // coherence between edges and nodes is ensured upon construction
             if (alt < dst(out.finish)) {
               (dst.updated(out.finish, alt), prv.updated(out.finish, out.start.some), rem.map(x ⇒
