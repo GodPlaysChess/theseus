@@ -60,12 +60,12 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
     new Graph[I, L, A](Foldable[F].foldl(moreNodes, nodes)(ns ⇒ n ⇒ ns + (n.id → n)), edges)
   }
 
-  def *-*(s: I, f: I, l: L): Option[Graph[I, L, A]] = connect(s, f, l).toOption
+  def *-*(s: I, f: I, l: L): Graph[I, L, A] = connectE(s, f, l) getOrElse self
 
   /**
     * None if either f or s does not exists. Alternatively can return Node(S) does not exist message
     * */
-  def connect(s: I, f: I, l: L): ErrorAlgebra \/ Graph[I, L, A] = {
+  def connectE(s: I, f: I, l: L): ErrorAlgebra \/ Graph[I, L, A] = {
     (nodes.contains(s) && nodes.contains(f)).either(
       new Graph(nodes, edges.insertWith(s, Set(Edge(l, s, f)))(_ ++ _))
     ) or ErrorAlgebra.noSuchNode
@@ -73,8 +73,9 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
 
   def disconnect(s: I, f: I): Graph[I, L, A] = {
     edges.get(s).cata(edgesForS ⇒ {
-      val edges2 = edgesForS.filter(_.finish == f)
-      if (edges2.isEmpty) edges.deleteKey(s) else
+      val es2 = edgesForS.filter(_.finish == f)
+      val edges1 = if (es2.isEmpty) edges - s else edges + (s -> es2)
+      new Graph(nodes, edges1)
     }, self)
   }
 
