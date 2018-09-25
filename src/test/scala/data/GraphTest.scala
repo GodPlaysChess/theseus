@@ -46,6 +46,7 @@ class GraphTest extends FlatSpec with Matchers {
   behavior of "Basic queries on normal graph"
 
   it should "give all outgoing edges in O(1)" in {
+    println(graph)
     graph.edgesFrom(1) shouldBe Set(e12, e13)
   }
 
@@ -63,6 +64,13 @@ class GraphTest extends FlatSpec with Matchers {
   it should "find the shortest path in O(n)" in {
     graph.shortestPath(1, 6).map(_.flatMap(graph.node(_).toIList).map(_.content).fold) shouldBe \/-("Hell")
     graph.shortestPathLength(1, 6) shouldBe \/-(3)
+  }
+
+  it should "find the shortest path on medium graph O(n)" in {
+    val med = medGraph
+    val t = System.currentTimeMillis()
+    medGraph.shortestPathLength(500, 1) shouldBe \/-(2)
+    println(s"${System.currentTimeMillis() - t} ms")
   }
 
   it should "find the particular node in O(1)" in {

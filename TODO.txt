@@ -3,6 +3,8 @@
     - no IO (currently EvaluatedGraph)
     - known structure, but unknown content and length
     - some known nodes + edges - unexplored graph (IOGraph)
+    - graph with no content (just edges)
+    - bidirectional graph
 - Test performance, when changing Set to ISet, and Map to ==>>
 - benchmarking
 - visualisation

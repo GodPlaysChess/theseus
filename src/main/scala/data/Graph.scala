@@ -139,7 +139,11 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
 object Graph {
   // todo change Equal to Order constraint to use scalaz datatypes
   def create[I: Equal, A, L](nodes: List[Node[I, A]], edges: List[Edge[I, L]]) = {
-    new Graph[I, L, A](nodes.fproduct(_.id).map(_.swap).toMap, edges.groupBy(_.start).mapValues(_.toSet))
+//    val filtr = { e: Edge[I, L] ⇒ (nodes.map(_.id).contains(_)).product{(e.start, e.finish)}.fold(booleanInstance.conjunction.append) }
+
+    new Graph[I, L, A](nodes.fproduct(_.id).map(_.swap).toMap, edges
+      .filter(e ⇒ nodes.map(_.id).contains(e.finish) && nodes.map(_.id).contains(e.start))
+      .groupBy(_.start).mapValues(_.toSet))
   }
 
   def createdUndirected[I: Equal, A, L](nodes: List[Node[I, A]], edges: List[Edge[I, L]]) = {

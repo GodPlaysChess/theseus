@@ -12,8 +12,6 @@ libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
 
 libraryDependencies += "org.scalaz" %% "scalaz-zio" % "0.2.7"
 
-libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.16.0"
-
 libraryDependencies += "commons-codec" % "commons-codec" % "1.11"
 
 libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26"
@@ -21,3 +19,16 @@ libraryDependencies += "org.scalaz" %% "scalaz-core" % "7.2.26"
 scalacOptions in Test ++= Seq("-Yrangepos")
 
 resolvers += Resolver.sonatypeRepo("releases")
+
+//resolvers += "Sonatype OSS Snapshots" at
+//  "https://oss.sonatype.org/content/repositories/releases"
+//
+//libraryDependencies += "com.storm-enroute" %% "scalameter" % "0.8.2"
+//
+//testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework")
+//
+//parallelExecution in Test := false
+//
+//libraryDependencies += "com.storm-enroute" %% "scalameter-core" % "0.8.2"
+//
+//logBuffered := false
