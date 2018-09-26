@@ -4,6 +4,8 @@ import scalaz.Scalaz._
 import scalaz._
 import util.MinMax
 
+import scala.annotation.tailrec
+
 /**
   * @tparam I - identifier
   * @tparam L - length of the edge. // one by default, but can be request time in ms, or physical length
@@ -109,6 +111,7 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
     val queue: Heap[(I, MinMax[L])] = Heap.fromData(dist.toSet.toIList)
     val prevs = nodes.mapValues(_ ⇒ none[I])
 
+    @tailrec
     def go(heap: Heap[(I, MinMax[L])], dist: Map[I, MinMax[L]], prev: Map[I, Option[I]]): (Map[I, MinMax[L]], Map[I, Option[I]]) = {
       heap.uncons match {
         case None => dist → prev

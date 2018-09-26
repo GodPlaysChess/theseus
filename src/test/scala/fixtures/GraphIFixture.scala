@@ -1,9 +1,9 @@
 package fixtures
 
 import data._
+import parse.Parsers
+import scalaz.Scalaz._
 import scalaz.zio._
-import scalaz.{Node ⇒ N, _}
-import Scalaz._
 
 /**
   *       2 --- 4 --- 6
@@ -48,19 +48,14 @@ object GraphFixture {
   }
 
   object instances {
-
-    import edges._, nodes._
+    import edges._
+    import nodes._
 
     val graph: Graph[Int, Int, String] = Graph.create(List(n1, n2, n3, n4, n5, n6), List(e12, e24, e46, e13, e34, e35))
 
-    lazy val medGraph: Graph[Int, Int, Int] = {
-      val edges: List[Edge[Int, Int]] = scala.io.Source.fromFile("src/test/resources/med-graph0").getLines().map { line ⇒
-        val s :: f :: Nil = line.tail.trim.split(" ").map(_.toInt).toList
-        Edge(1, s, f)
-      }.toList
-      val nodes: List[Node[Int, Int]] = (1 to 500).map(i ⇒ Node(i, i)).toList
-      Graph.create(nodes, edges)
-    }
+    lazy val medGraph: Graph[Int, Int, Int] = Parsers.fromFileEdgesNoLength("src/test/resources/med-graph0")
+    lazy val compact1000: Graph[Int, Int, Int] = Parsers.fromFileEdgesNoLength("src/test/resources/1000-compact")
+    lazy val sparse1000: Graph[Int, Int, Int] = Parsers.fromFileEdgesNoLength("src/test/resources/1000-sparse")
 
     lazy val bigGraph: Graph[Int, Int, String] = Graph.create(
       (1 to 10000).map(i ⇒ Node(i, s"$i")).toList,

@@ -5,7 +5,9 @@ import fixtures.GraphFixture.instances._
 import scalaz._
 import scalaz.Scalaz._
 
-class GraphTest extends FlatSpec with Matchers {
+class GraphTest extends FlatSpec
+  with Matchers
+  with Benchmarking {
   import fixtures.GraphFixture.nodes._
   import fixtures.GraphFixture.edges._
 
@@ -67,10 +69,17 @@ class GraphTest extends FlatSpec with Matchers {
   }
 
   it should "find the shortest path on medium graph O(n)" in {
-    val med = medGraph
-    val t = System.currentTimeMillis()
-    medGraph.shortestPathLength(500, 1) shouldBe \/-(2)
-    println(s"${System.currentTimeMillis() - t} ms")
+    withBenchmark(medGraph.shortestPathLength(500, 1)) shouldBe \/-(2)
+  }
+
+  it should "find the shortest path in compact graph fast" in {
+    // 33714 ms
+    withBenchmark(compact1000.shortestPathLength(1000, 1)) shouldBe \/-(1)
+  }
+
+  it should "find the shortest path in sparse graph fast" in {
+    // 7000 ms
+    withBenchmark(sparse1000.shortestPathLength(1000, 1)) shouldBe \/-(2)
   }
 
   it should "find the particular node in O(1)" in {
@@ -88,4 +97,13 @@ class GraphTest extends FlatSpec with Matchers {
 
 
 
+}
+
+trait Benchmarking {
+  def withBenchmark[A](f: ⇒ A): A = {
+    val t = System.currentTimeMillis()
+    val e = f
+    println(s"${System.currentTimeMillis() - t} ms")
+    e
+  }
 }
