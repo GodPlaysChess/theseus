@@ -117,7 +117,7 @@ class Graph[I: Equal, L, A] private(private val nodes: Map[I, Node[I, A]], priva
         case None => dist → prev
         case Some((min, remheap)) =>
           val (dist1, prev1, remheap1) = edgesFrom(min._1).foldLeft((dist, prev, remheap)) { case ((dst, prv, rem), out) ⇒
-            val alt = dst(out.start) |+| avg(out.length) // coherence between edges and nodes is ensured upon construction
+            val alt: MinMax[L] = dst(out.start) |+| avg(out.length) // coherence between edges and nodes is ensured upon construction
             if (alt < dst(out.finish)) {
               (dst.updated(out.finish, alt), prv.updated(out.finish, out.start.some), rem.map(x ⇒
                 if (x._1 === out.finish) x >| alt else x // todo could possibly optimize that operation, by mapping just once on each recursion step. Just fold within the map.

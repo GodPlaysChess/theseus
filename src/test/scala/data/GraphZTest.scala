@@ -1,11 +1,11 @@
 package data
 
 import org.scalatest.{FlatSpec, Matchers}
-import fixtures.GraphFixture.instances._
+import fixtures.GraphZFixture.instances._
 import scalaz._
 import scalaz.Scalaz._
 
-class GraphTest extends FlatSpec
+class GraphZTest extends FlatSpec
   with Matchers
   with Benchmarking {
   import fixtures.GraphFixture.nodes._
@@ -34,26 +34,25 @@ class GraphTest extends FlatSpec
   it should "be ok to connect nodes" in {
     val updatedGraph = graph *-* Edge(10, 5, 6)
     updatedGraph.size shouldBe 6
-    updatedGraph.edgesFrom(5) should contain(Edge(10, 5, 6))
+    updatedGraph.edgesFrom(5).toList should contain(Edge(10, 5, 6))
   }
 
   it should "be ok to disconnect nodes" in {
     val updatedGraph = graph *~* (3, 5)
     updatedGraph.size shouldBe 6
-    updatedGraph.edgesFrom(5) shouldBe empty
-    updatedGraph.edgesFrom(3) shouldBe Set(e34)
+    updatedGraph.edgesFrom(5).toList shouldBe empty
+    updatedGraph.edgesFrom(3).toList shouldBe List(e34)
   }
 
 
   behavior of "Basic queries on normal graph"
 
   it should "give all outgoing edges in O(1)" in {
-    println(graph)
-    graph.edgesFrom(1) shouldBe Set(e12, e13)
+    graph.edgesFrom(1).toList shouldBe List(e12, e13)
   }
 
   it should "give all neighbors in O(1) for particular node" in {
-    graph.neighbors(3) shouldBe Set(4, 5)
+    graph.neighbors(3).toList shouldBe List(4, 5)
   }
 
   it should "find the edge connecting 2 nodes in O(1)" in {
@@ -69,19 +68,18 @@ class GraphTest extends FlatSpec
   }
 
   it should "find the shortest path on medium graph O(n)" in {
-    //1557 ms
-    withBenchmark(medGraph.shortestPathLength(500, 1)) shouldBe \/-(2)
+    withBenchmark(medGraphZ.shortestPathLength(500, 1)) shouldBe \/-(2)
   }
 
   it should "find the shortest path in compact graph fast" in {
     // 33714 ms mac
-    // 7083 ms win
+    // 17059 ms win
     withBenchmark(compact1000.shortestPathLength(1000, 1)) shouldBe \/-(1)
   }
 
   it should "find the shortest path in sparse graph fast" in {
     // 7000 ms
-    // 1143
+    // 2914
     withBenchmark(sparse1000.shortestPathLength(1000, 1)) shouldBe \/-(2)
   }
 
